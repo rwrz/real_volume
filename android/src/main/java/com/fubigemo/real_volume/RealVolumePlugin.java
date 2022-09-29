@@ -25,12 +25,13 @@ import io.flutter.plugin.common.PluginRegistry;
 /**
  * RealVolumePlugin
  */
-public class RealVolumePlugin implements FlutterPlugin, MethodCallHandler, EventChannel.StreamHandler {
+public class RealVolumePlugin implements FlutterPlugin, MethodCallHandler, EventChannel.StreamHandler, ActivityAware {
     private MethodChannel methodChannel;
     private EventChannel volumeEventChannel, ringerModeEventChannel;
     private RingerModeStreamHandler ringerModeStreamHandler;
     private CustomAudioService audioService;
     private Context context;
+    private Activity activity;
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
@@ -80,6 +81,13 @@ public class RealVolumePlugin implements FlutterPlugin, MethodCallHandler, Event
                     Objects.requireNonNull(call.argument("volumeLevel")),
                     Objects.requireNonNull(call.argument("showUI"))
             ));
+        } else if (call.method.equals("setVolumeControlStream")) {
+            if (activity == null) {
+                result.error(TAG,"[null_activity]", null);
+                return;
+            }
+            activity.setVolumeControlStream(Objects.requireNonNull(call.argument("streamType")));
+            result.success(null);
         } else {
             result.notImplemented();
         }
@@ -104,4 +112,23 @@ public class RealVolumePlugin implements FlutterPlugin, MethodCallHandler, Event
         audioService.unregisterVolumeListener();
     }
 
+    @Override
+    public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
+        activity = binding.getActivity();
+    }
+
+    @Override
+    public void onDetachedFromActivityForConfigChanges() {
+        activity = null;
+    }
+
+    @Override
+    public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
+        activity = binding.getActivity();
+    }
+
+    @Override
+    public void onDetachedFromActivity() {
+        activity = null;
+    }
 }

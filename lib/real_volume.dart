@@ -179,6 +179,19 @@ class RealVolume {
     });
     return success;
   }
+
+  /// Suggests an audio [streamType] whose volume should be changed by the hardware volume controls.
+  /// Defaults to [USE_DEFAULT_STREAM_TYPE].
+  ///
+  /// ```dart
+  /// await RealVolume.setVolume(0.7, streamType: StreamType.MUSIC, showUI: true);
+  /// ```
+  static Future<bool?> setVolumeControlStream({StreamType? streamType = StreamType.MUSIC}) async {
+    final bool? success = await _methodChannel.invokeMethod('setVolumeControlStream', {
+      'streamType': streamType?.index ?? USE_DEFAULT_STREAM_TYPE,
+    });
+    return success;
+  }
 }
 
 /*
@@ -203,6 +216,9 @@ Used to identify the volume of audio streams for notifications
 AudioManager.STREAM_NOTIFICATION = AudioSystem.STREAM_NOTIFICATION = 5;
 */
 enum StreamType { VOICE_CALL, SYSTEM, RING, MUSIC, ALARM, NOTIFICATION }
+
+/// Suggests using the default stream type. This may not be used in all places a stream type is needed.
+const USE_DEFAULT_STREAM_TYPE = -2147483648;
 
 /*
 ENUMS FOR MODE
